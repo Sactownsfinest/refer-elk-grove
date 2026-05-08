@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { AnnouncementCard } from '@/components/AnnouncementCard'
 import { PostFeed } from '@/components/PostFeed'
 import { Card, CardContent } from '@/components/ui/card'
@@ -7,9 +7,10 @@ import type { Announcement, Member, Post } from '@/lib/types'
 
 export default async function HomePage() {
   const supabase = await createClient()
+  const admin = createAdminClient()
 
   const { data: { session } } = await supabase.auth.getSession()
-  const { data: member } = await supabase
+  const { data: member } = await admin
     .from('members')
     .select('*')
     .eq('id', session!.user.id)
@@ -43,28 +44,42 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          Good {getGreeting()}, {member?.name?.split(' ')[0] || 'there'}! 👋
-        </h1>
-        <p className="text-muted text-sm mt-1">Here's what's happening in Refer Elk Grove</p>
-      </div>
-
-      {/* Quick stats */}
-      <div className="grid grid-cols-2 gap-4">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-secondary">{weekReferrals}</p>
-            <p className="text-xs text-muted mt-1">🤝 Referrals this week</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-accent-dark">{weekCloses}</p>
-            <p className="text-xs text-muted mt-1">💰 Closes this week</p>
-          </CardContent>
-        </Card>
+      {/* Hero banner */}
+      <div
+        className="relative rounded-2xl overflow-hidden"
+        style={{ minHeight: 220 }}
+      >
+        <img
+          src="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1400&q=80"
+          alt="Refer Elk Grove networking"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Dark branded overlay */}
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(135deg, rgba(30,58,95,0.82) 0%, rgba(45,106,79,0.70) 100%)' }}
+        />
+        {/* Content */}
+        <div className="relative z-10 px-6 py-8 flex flex-col justify-end" style={{ minHeight: 220 }}>
+          <p className="text-white/70 text-sm font-medium tracking-wide uppercase mb-1">Refer Elk Grove</p>
+          <h1 className="text-3xl font-bold text-white drop-shadow">
+            Good {getGreeting()}, {member?.name?.split(' ')[0] || 'there'}! 👋
+          </h1>
+          <p className="text-white/80 text-sm mt-1">Here's what's happening in your network</p>
+          <div className="flex gap-4 mt-4">
+            <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-2 text-center">
+              <p className="text-2xl font-bold text-white">{weekReferrals}</p>
+              <p className="text-white/80 text-xs">🤝 Referrals</p>
+            </div>
+            <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-2 text-center">
+              <p className="text-2xl font-bold text-white">{weekCloses}</p>
+              <p className="text-white/80 text-xs">💰 Closes</p>
+            </div>
+            <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-2 text-center flex flex-col justify-center">
+              <p className="text-white/80 text-xs">This week</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Announcements */}
