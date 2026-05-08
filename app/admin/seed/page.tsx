@@ -57,10 +57,11 @@ export default function SeedMembersPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Seed Members</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Add Members to Directory</h1>
         <p className="text-muted text-sm mt-1">
-          Fill in each member's email address, then click Send Invites. Each person will receive
-          an invite email with a link to set their password — their profile will already be ready.
+          Fill in each member's email and click Add to Directory. No emails are sent — members
+          appear in the directory immediately. When you're ready for someone to log in, go to
+          Supabase → Authentication → Users and send them a password reset email.
         </p>
       </div>
 
@@ -138,7 +139,7 @@ export default function SeedMembersPage() {
 
       <div className="flex items-center gap-4">
         <Button onClick={handleSeed} loading={loading} size="lg" disabled={emailsFilled === 0}>
-          Send Invites & Create Members ({emailsFilled}/{total} emails filled)
+          Add to Directory ({emailsFilled}/{total} emails filled)
         </Button>
         <p className="text-xs text-muted">
           Only rows with an email will be processed. You can run this multiple times.
