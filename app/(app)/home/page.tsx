@@ -8,11 +8,11 @@ import type { Announcement, Member, Post } from '@/lib/types'
 export default async function HomePage() {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
   const { data: member } = await supabase
     .from('members')
     .select('*')
-    .eq('id', user!.id)
+    .eq('id', session!.user.id)
     .single()
 
   const [{ data: announcements }, { data: posts }, { data: weekPosts }] = await Promise.all([

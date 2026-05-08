@@ -9,10 +9,10 @@ const adminSupabase = createClient(
 
 export async function POST(request: Request) {
   const supabase = await createServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: caller } = await supabase.from('members').select('role').eq('id', user.id).single()
+  const { data: caller } = await supabase.from('members').select('role').eq('id', session.user.id).single()
   if (caller?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const members: { name: string; email: string; businessName: string; category: string; phone: string }[] = await request.json()

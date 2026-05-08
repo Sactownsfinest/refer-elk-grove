@@ -6,7 +6,7 @@ import type { Announcement } from '@/lib/types'
 
 export default async function AdminAnnouncementsPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
 
   const { data: announcements } = await supabase
     .from('announcements')
@@ -21,7 +21,7 @@ export default async function AdminAnnouncementsPage() {
       <Card>
         <CardHeader><CardTitle>Post New Announcement</CardTitle></CardHeader>
         <CardContent>
-          <AnnouncementForm authorId={user!.id} />
+          <AnnouncementForm authorId={session!.user.id} />
         </CardContent>
       </Card>
 

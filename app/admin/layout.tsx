@@ -7,10 +7,10 @@ import { Shield, Users, Megaphone, LayoutDashboard, UserPlus } from 'lucide-reac
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) redirect('/login')
 
-  const { data: member } = await supabase.from('members').select('*').eq('id', user.id).single()
+  const { data: member } = await supabase.from('members').select('*').eq('id', session.user.id).single()
   if (!member || member.role !== 'admin') redirect('/')
 
   return (

@@ -28,9 +28,9 @@ export default function ProfilePage() {
   useEffect(() => {
     async function load() {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const { data } = await supabase.from('members').select('*').eq('id', user.id).single()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+      const { data } = await supabase.from('members').select('*').eq('id', session.user.id).single()
       if (data) {
         setMember(data as Member)
         setForm(data as Member)

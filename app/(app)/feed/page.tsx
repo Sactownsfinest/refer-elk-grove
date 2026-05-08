@@ -6,10 +6,10 @@ import type { Member, Post } from '@/lib/types'
 
 export default async function FeedPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
 
   const [{ data: member }, { data: members }, { data: posts }] = await Promise.all([
-    supabase.from('members').select('*').eq('id', user!.id).single(),
+    supabase.from('members').select('*').eq('id', session!.user.id).single(),
     supabase.from('members').select('id, name, business_name, photo_url, category').eq('status', 'active').order('name'),
     supabase
       .from('posts')
