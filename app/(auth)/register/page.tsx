@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export default function RegisterPage() {
   const [name, setName] = useState('')
@@ -13,35 +14,38 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
+  const [isFirst, setIsFirst] = useState(false)
+  const router = useRouter()
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const supabase = createClient()
-    const { data, error: signUpErr } = await supabase.auth.signUp({ email, password })
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password, businessName }),
+    })
 
-    if (signUpErr || !data.user) {
-      setError(signUpErr?.message || 'Registration failed')
+    const data = await res.json()
+
+    if (!res.ok) {
+      setError(data.error || 'Registration failed')
       setLoading(false)
       return
     }
 
-    // Create member record
-    const { error: memberErr } = await supabase.from('members').insert({
-      id: data.user.id,
-      name: name.trim(),
-      business_name: businessName.trim(),
-      status: 'pending',
-      role: 'member',
-    })
-
-    if (memberErr) {
-      setError('Account created but profile setup failed. Please contact the admin.')
-    } else {
-      setDone(true)
+    // If first admin, sign them in and send straight to the app
+    if (data.isFirst) {
+      const supabase = createClient()
+      await supabase.auth.signInWithPassword({ email, password })
+      router.replace('/home')
+      return
     }
+
+    setIsFirst(false)
+    setDone(true)
     setLoading(false)
   }
 
