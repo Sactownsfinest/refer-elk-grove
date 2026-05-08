@@ -1,5 +1,4 @@
-import { redirect } from 'next/navigation'
-
-export default function AppIndexPage() {
-  redirect('/home')
+// Route / is handled by app/page.tsx — this file satisfies the (app) layout group tracer.
+export default function AppPage() {
+  return null
 }
