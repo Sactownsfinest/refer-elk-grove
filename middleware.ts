@@ -23,47 +23,21 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // Use getSession for middleware — fast, no network call.
+  // Full getUser() + member checks happen in server component layouts.
+  const { data: { session } } = await supabase.auth.getSession()
 
   const { pathname } = request.nextUrl
   const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/register')
-  const isPendingRoute = pathname === '/pending'
-  const isAdminRoute = pathname.startsWith('/admin')
   const isApiRoute = pathname.startsWith('/api')
 
   if (isApiRoute) return supabaseResponse
 
-  if (!user) {
-    if (!isAuthRoute) {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
-    return supabaseResponse
-  }
-
-  const { data: member } = await supabase
-    .from('members')
-    .select('status, role')
-    .eq('id', user.id)
-    .single()
-
-  if (!member) {
-    await supabase.auth.signOut()
+  if (!session && !isAuthRoute) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (member.status === 'pending' && !isPendingRoute && !isAuthRoute) {
-    return NextResponse.redirect(new URL('/pending', request.url))
-  }
-
-  if (member.status === 'active' && isPendingRoute) {
-    return NextResponse.redirect(new URL('/home', request.url))
-  }
-
-  if (isAdminRoute && member.role !== 'admin') {
-    return NextResponse.redirect(new URL('/home', request.url))
-  }
-
-  if (isAuthRoute && member.status === 'active') {
+  if (session && isAuthRoute) {
     return NextResponse.redirect(new URL('/home', request.url))
   }
 
