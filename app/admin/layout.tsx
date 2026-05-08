@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
 import type { Member } from '@/lib/types'
@@ -10,7 +10,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) redirect('/login')
 
-  const { data: member } = await supabase.from('members').select('*').eq('id', session.user.id).single()
+  const admin = createAdminClient()
+  const { data: member } = await admin.from('members').select('*').eq('id', session.user.id).single()
   if (!member || member.role !== 'admin') redirect('/')
 
   return (

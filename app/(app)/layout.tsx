@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { Navigation } from '@/components/Navigation'
 import type { Member } from '@/lib/types'
 
@@ -9,7 +9,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   if (!session) redirect('/login')
 
-  const { data: member } = await supabase
+  const admin = createAdminClient()
+  const { data: member } = await admin
     .from('members')
     .select('*')
     .eq('id', session.user.id)
