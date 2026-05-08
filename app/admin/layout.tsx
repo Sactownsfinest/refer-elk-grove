@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
 import type { Member } from '@/lib/types'
-import { Shield, Users, Megaphone, LayoutDashboard } from 'lucide-react'
+import { Shield, Users, Megaphone, LayoutDashboard, UserPlus } from 'lucide-react'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -32,6 +32,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <span className="text-muted">·</span>
             <Link href="/admin/announcements" className="text-sm text-muted hover:text-primary transition-colors flex items-center gap-1">
               <Megaphone size={14} /> Announcements
+            </Link>
+            <span className="text-muted">·</span>
+            <Link href="/admin/seed" className="text-sm text-muted hover:text-primary transition-colors flex items-center gap-1">
+              <UserPlus size={14} /> Seed Members
             </Link>
           </div>
           {children}
