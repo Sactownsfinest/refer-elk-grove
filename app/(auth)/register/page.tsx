@@ -40,7 +40,7 @@ export default function RegisterPage() {
     if (data.isFirst) {
       const supabase = createClient()
       await supabase.auth.signInWithPassword({ email, password })
-      router.replace('/home')
+      window.location.href = '/home'
       return
     }
 

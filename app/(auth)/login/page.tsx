@@ -25,8 +25,7 @@ export default function LoginPage() {
       setError(err.message)
       setLoading(false)
     } else {
-      router.push('/')
-      router.refresh()
+      window.location.href = '/home'
     }
   }
 
