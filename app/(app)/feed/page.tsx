@@ -23,8 +23,8 @@ export default async function FeedPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Activity Feed</h1>
-        <p className="text-muted text-sm mt-1">Log referrals, closes, shout-outs, and messages</p>
+        <h1 className="text-2xl font-bold text-gray-900">Feed</h1>
+        <p className="text-muted text-sm mt-1">Chat with the group or log referrals, closes & shout-outs</p>
       </div>
 
       <FeedClient
