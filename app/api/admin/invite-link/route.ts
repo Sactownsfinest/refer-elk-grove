@@ -39,5 +39,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error?.message ?? 'Failed to generate link' }, { status: 500 })
   }
 
-  return NextResponse.json({ link: data.properties.action_link, email })
+  // Supabase ignores redirectTo if the URL isn't in its allowlist and falls back
+  // to the dashboard Site URL (often localhost). Force-replace redirect_to in the
+  // generated URL — the Supabase host stays intact, only the redirect destination changes.
+  const url = new URL(data.properties.action_link as string)
+  url.searchParams.set('redirect_to', `${siteUrl}/auth/callback`)
+  const link = url.toString()
+
+  return NextResponse.json({ link, email })
 }
