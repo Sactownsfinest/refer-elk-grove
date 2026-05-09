@@ -4,7 +4,7 @@
   "description": "Members-only referral network for Elk Grove business professionals",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F8FAFC",
+  "background_color": "#1E3A5F",
   "theme_color": "#1E3A5F",
   "orientation": "portrait",
   "icons": [
