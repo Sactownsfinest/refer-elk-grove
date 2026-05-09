@@ -132,19 +132,6 @@ export default async function ReportPage() {
         )}
       </Card>
 
-      {/* Members with no activity */}
-      {(members || []).filter(m => !board.find(b => b.member.id === m.id)).length > 0 && (
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs font-medium text-muted mb-2">No activity this week:</p>
-            <div className="flex flex-wrap gap-2">
-              {(members || []).filter(m => !board.find(b => b.member.id === m.id)).map(m => (
-                <span key={m.id} className="text-sm text-muted">{m.name}</span>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   )
 }
