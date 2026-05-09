@@ -38,16 +38,13 @@ export function Navigation({ member }: NavigationProps) {
       {/* Sidebar — desktop */}
       <aside className="hidden md:flex flex-col w-60 bg-primary text-white min-h-screen fixed left-0 top-0 z-30">
         {/* Logo */}
-        <div className="px-5 py-5 border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
-              <span className="text-primary font-bold text-sm">RE</span>
-            </div>
-            <div>
-              <p className="font-bold text-sm leading-tight">Refer</p>
-              <p className="font-bold text-sm leading-tight text-accent">Elk Grove</p>
-            </div>
-          </div>
+        <div className="px-5 py-4 border-b border-white/10">
+          <img
+            src="/Refer%20Elk%20Grove.png"
+            alt="Refer Elk Grove"
+            style={{ height: 52, width: 'auto' }}
+            className="drop-shadow"
+          />
         </div>
 
         {/* Nav links */}
