@@ -6,8 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar } from '@/components/ui/avatar'
 import type { Member } from '@/lib/types'
 import {
-  Camera, Save, Phone, MapPin, Globe, Star,
-  Facebook, Instagram, Linkedin, ExternalLink
+  Camera, Save, Phone, MapPin, Globe, Star, ExternalLink, Link
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -141,9 +140,9 @@ export function ProfileClient({ member: initial, email }: { member: Member; emai
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <SocialLink href={member.google_review_url} icon={Star} label="Google Reviews" />
                 <SocialLink href={member.website_url} icon={Globe} label="Website" />
-                <SocialLink href={member.facebook_url} icon={Facebook} label="Facebook" />
-                <SocialLink href={member.instagram_url} icon={Instagram} label="Instagram" />
-                <SocialLink href={member.linkedin_url} icon={Linkedin} label="LinkedIn" />
+                <SocialLink href={member.facebook_url} icon={Link} label="Facebook" />
+                <SocialLink href={member.instagram_url} icon={Link} label="Instagram" />
+                <SocialLink href={member.linkedin_url} icon={Link} label="LinkedIn" />
                 {member.nextdoor_url && (
                   <a
                     href={member.nextdoor_url}
