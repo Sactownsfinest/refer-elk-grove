@@ -147,6 +147,18 @@ export function Navigation({ member }: NavigationProps) {
               <span className="text-[10px] font-medium">{label}</span>
             </Link>
           ))}
+          {member.role === 'admin' && (
+            <Link
+              href="/admin"
+              className={cn(
+                'flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors',
+                pathname.startsWith('/admin') ? 'text-accent' : 'text-white/60 hover:text-white'
+              )}
+            >
+              <Shield size={20} />
+              <span className="text-[10px] font-medium">Admin</span>
+            </Link>
+          )}
           <Link
             href="/profile"
             className={cn(
