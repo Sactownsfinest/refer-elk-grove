@@ -32,6 +32,16 @@ export function AnnouncementForm({ authorId }: AnnouncementFormProps) {
     if (err) {
       setError('Failed to post announcement.')
     } else {
+      fetch('/api/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: `📢 ${isPinned ? '📌 ' : ''}${title.trim()}`,
+          body: content.trim().slice(0, 100),
+          url: '/home',
+          excludeMemberId: authorId,
+        }),
+      }).catch(() => {})
       setTitle('')
       setContent('')
       setIsPinned(false)

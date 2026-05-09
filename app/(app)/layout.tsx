@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { Navigation } from '@/components/Navigation'
+import { PushSetup } from '@/components/PushSetup'
 import type { Member } from '@/lib/types'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -21,6 +22,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-background flex">
+      <PushSetup memberId={member.id} />
       <Navigation member={member as Member} />
       {/* Main content - offset for sidebar on desktop */}
       <main className="flex-1 md:ml-60 pb-20 md:pb-0 min-h-screen">

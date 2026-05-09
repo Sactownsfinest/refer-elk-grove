@@ -54,6 +54,18 @@ export function PostComposer({ currentMember, members, onPost }: PostComposerPro
     if (err) {
       setError('Failed to post. Please try again.')
     } else {
+      const typeLabels: Record<string, string> = { message: 'Message', shoutout: 'Shout-Out', referral: 'Referral', close: 'Close' }
+      const typeEmojis: Record<string, string> = { message: '💬', shoutout: '🎉', referral: '🤝', close: '💰' }
+      fetch('/api/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: `${typeEmojis[type]} New ${typeLabels[type]} from ${currentMember.name}`,
+          body: content.trim() || `${currentMember.name} posted a ${typeLabels[type].toLowerCase()}`,
+          url: '/feed',
+          excludeMemberId: currentMember.id,
+        }),
+      }).catch(() => {})
       setContent('')
       setToMemberId('')
       setClientName('')

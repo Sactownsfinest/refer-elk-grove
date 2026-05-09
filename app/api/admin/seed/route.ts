@@ -20,58 +20,60 @@ export async function POST(request: Request) {
 
   const results: { name: string; success: boolean; error?: string }[] = []
 
+  const { data: listData } = await adminSupabase.auth.admin.listUsers()
+  const allUsers = listData?.users ?? []
+
   for (const m of members) {
-    if (!m.email?.trim()) {
-      results.push({ name: m.name, success: false, error: 'Email is required' })
-      continue
-    }
+    if (!m.email?.trim()) continue
 
-    // Check if auth user already exists for this email
-    const { data: listData } = await adminSupabase.auth.admin.listUsers()
-    const existingUser = listData?.users.find(u => u.email === m.email.trim().toLowerCase())
-
-    if (existingUser) {
-      // Check if member record already exists
-      const { data: existingMember } = await adminSupabase.from('members').select('id').eq('id', existingUser.id).maybeSingle()
-      if (existingMember) {
-        results.push({ name: m.name, success: false, error: 'Already in directory' })
-        continue
-      }
-    }
-
-    // Create auth user without sending any email
-    const userId = existingUser?.id
-    let newUserId = userId
+    const email = m.email.trim().toLowerCase()
+    const existingUser = allUsers.find(u => u.email?.toLowerCase() === email)
+    let userId = existingUser?.id
 
     if (!userId) {
       const { data: createData, error: createError } = await adminSupabase.auth.admin.createUser({
-        email: m.email.trim().toLowerCase(),
+        email,
         email_confirm: true,
         password: Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + 'A1!',
       })
-
       if (createError || !createData?.user) {
         results.push({ name: m.name, success: false, error: createError?.message ?? 'Failed to create user' })
         continue
       }
-      newUserId = createData.user.id
+      userId = createData.user.id
     }
 
-    const { error: memberError } = await adminSupabase.from('members').insert({
-      id: newUserId,
-      name: m.name.trim(),
-      business_name: m.businessName.trim(),
-      category: m.category.trim(),
-      phone: m.phone.trim(),
-      status: 'active',
-      role: 'member',
-    })
+    const { data: existingMember } = await adminSupabase
+      .from('members')
+      .select('id, role')
+      .eq('id', userId)
+      .maybeSingle()
 
-    if (memberError) {
-      if (!userId) await adminSupabase.auth.admin.deleteUser(newUserId!)
-      results.push({ name: m.name, success: false, error: memberError.message })
+    if (existingMember) {
+      // Update info but preserve role/status so admins don't get demoted
+      const { error } = await adminSupabase.from('members').update({
+        name: m.name.trim(),
+        business_name: m.businessName.trim(),
+        category: m.category.trim(),
+        phone: m.phone.trim(),
+      }).eq('id', userId)
+      results.push({ name: m.name, success: !error, error: error?.message })
     } else {
-      results.push({ name: m.name, success: true })
+      const { error } = await adminSupabase.from('members').insert({
+        id: userId,
+        name: m.name.trim(),
+        business_name: m.businessName.trim(),
+        category: m.category.trim(),
+        phone: m.phone.trim(),
+        status: 'active',
+        role: 'member',
+      })
+      if (error) {
+        if (!existingUser) await adminSupabase.auth.admin.deleteUser(userId)
+        results.push({ name: m.name, success: false, error: error.message })
+      } else {
+        results.push({ name: m.name, success: true })
+      }
     }
   }
 
