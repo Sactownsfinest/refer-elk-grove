@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { InstallPrompt } from '@/components/InstallPrompt'
 
 const navItems = [
   { href: '/home', label: 'Home', icon: Home },
@@ -97,6 +98,7 @@ export function Navigation({ member }: NavigationProps) {
               <p className="text-white/50 text-xs truncate">{member.business_name}</p>
             </div>
           </Link>
+          <InstallPrompt />
           <button
             onClick={handleSignOut}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors w-full"
