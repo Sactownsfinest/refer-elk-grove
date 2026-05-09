@@ -1,7 +1,5 @@
 import { createAdminClient, createClient } from '@/lib/supabase/server'
-import { PostComposer } from '@/components/PostComposer'
-import { PostFeed } from '@/components/PostFeed'
-import { Card } from '@/components/ui/card'
+import { FeedClient } from '@/components/FeedClient'
 import type { Member, Post } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
@@ -29,17 +27,11 @@ export default async function FeedPage() {
         <p className="text-muted text-sm mt-1">Log referrals, closes, shout-outs, and messages</p>
       </div>
 
-      <PostComposer
+      <FeedClient
+        initialPosts={(posts as Post[]) || []}
         currentMember={member as Member}
         members={(members as Member[]) || []}
       />
-
-      <Card>
-        <PostFeed
-          initialPosts={(posts as Post[]) || []}
-          currentMember={member as Member}
-        />
-      </Card>
     </div>
   )
 }
