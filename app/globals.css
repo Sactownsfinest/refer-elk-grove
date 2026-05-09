@@ -36,12 +36,12 @@ body {
 /* Logo splash animation — auth pages */
 @keyframes splashZoom {
   0%   { transform: scale(5); opacity: 0; }
-  25%  { opacity: 1; }
+  20%  { opacity: 1; }
   85%  { transform: scale(1.04); }
   100% { transform: scale(1); opacity: 1; }
 }
 .logo-splash {
-  animation: splashZoom 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: splashZoom 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   transform-origin: center center;
 }
 
