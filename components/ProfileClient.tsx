@@ -45,16 +45,35 @@ export function ProfileClient({ member: initial, email }: { member: Member; emai
     setForm(prev => ({ ...prev, [field]: value }))
   }
 
+  async function compressImage(file: File): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onerror = reject
+      img.onload = () => {
+        const MAX = 600
+        const scale = Math.min(1, MAX / Math.max(img.width, img.height))
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.round(img.width * scale)
+        canvas.height = Math.round(img.height * scale)
+        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Compression failed')), 'image/jpeg', 0.82)
+      }
+      img.src = URL.createObjectURL(file)
+    })
+  }
+
   async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
     setError('')
     try {
+      const compressed = await compressImage(file)
       const fd = new FormData()
-      fd.append('file', file)
+      fd.append('file', new File([compressed], 'avatar.jpg', { type: 'image/jpeg' }))
       const res = await fetch('/api/profile/upload-avatar', { method: 'POST', body: fd })
-      const json = await res.json()
+      let json: { url?: string; error?: string } = {}
+      try { json = await res.json() } catch { json = { error: `Server error ${res.status}` } }
       if (!res.ok) {
         setError(`Photo upload failed: ${json.error ?? res.status}`)
       } else {
