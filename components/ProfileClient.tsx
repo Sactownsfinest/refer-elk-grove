@@ -49,13 +49,20 @@ export function ProfileClient({ member: initial, email }: { member: Member; emai
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
-    const fd = new FormData()
-    fd.append('file', file)
-    const res = await fetch('/api/profile/upload-avatar', { method: 'POST', body: fd })
-    if (res.ok) {
-      const { url } = await res.json()
-      setForm(prev => ({ ...prev, photo_url: url }))
-      setMember(prev => ({ ...prev, photo_url: url }))
+    setError('')
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/profile/upload-avatar', { method: 'POST', body: fd })
+      const json = await res.json()
+      if (!res.ok) {
+        setError(`Photo upload failed: ${json.error ?? res.status}`)
+      } else {
+        setForm(prev => ({ ...prev, photo_url: json.url }))
+        setMember(prev => ({ ...prev, photo_url: json.url }))
+      }
+    } catch (err) {
+      setError(`Photo upload failed: ${err}`)
     }
     setUploading(false)
   }
@@ -109,6 +116,7 @@ export function ProfileClient({ member: initial, email }: { member: Member; emai
               )}
               <p className="text-xs text-muted mt-1">{email}</p>
               {uploading && <p className="text-xs text-primary mt-1">Uploading photo...</p>}
+              {error && error.startsWith('Photo') && <p className="text-xs text-destructive mt-1">{error}</p>}
             </div>
           </div>
 
