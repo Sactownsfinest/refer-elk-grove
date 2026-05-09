@@ -77,8 +77,8 @@ export function ProfileClient({ member: initial, email }: { member: Member; emai
       if (!res.ok) {
         setError(`Photo upload failed: ${json.error ?? res.status}`)
       } else {
-        setForm(prev => ({ ...prev, photo_url: json.url }))
-        setMember(prev => ({ ...prev, photo_url: json.url }))
+        setForm(prev => ({ ...prev, photo_url: json.url ?? null }))
+        setMember(prev => ({ ...prev, photo_url: json.url ?? null }))
       }
     } catch (err) {
       setError(`Photo upload failed: ${err}`)
