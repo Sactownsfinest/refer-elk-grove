@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
   const email = authUser.user.email
   const siteUrl = 'https://refer-elk-grove.vercel.app'
-  const redirectTo = `${siteUrl}/login`
+  const redirectTo = `${siteUrl}/auth/callback`
 
   // Generate a password recovery link — they click it, set their password, log in
   const { data, error } = await adminSupabase.auth.admin.generateLink({
@@ -39,9 +39,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error?.message ?? 'Failed to generate link' }, { status: 500 })
   }
 
-  // Supabase uses the dashboard Site URL in the link — rewrite it to production
-  const rawLink = data.properties.action_link as string
-  const fixedLink = rawLink.replace(/^https?:\/\/[^/]+/, siteUrl)
-
-  return NextResponse.json({ link: fixedLink, email })
+  return NextResponse.json({ link: data.properties.action_link, email })
 }
