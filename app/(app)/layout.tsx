@@ -25,7 +25,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <PushSetup memberId={member.id} />
       <Navigation member={member as Member} />
       {/* Main content - offset for sidebar on desktop */}
-      <main className="flex-1 md:ml-60 pb-20 md:pb-0 min-h-screen">
+      <main className="flex-1 md:ml-60 pb-20 md:pb-0 pt-14 md:pt-0 min-h-screen">
         <div className="max-w-4xl mx-auto px-4 py-6">
           {children}
         </div>

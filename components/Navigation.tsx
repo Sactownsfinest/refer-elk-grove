@@ -5,17 +5,18 @@ import { cn } from '@/lib/utils'
 import { Avatar } from '@/components/ui/avatar'
 import type { Member } from '@/lib/types'
 import {
-  Home, Users, MessageSquare, Trophy, FileText, Settings, LogOut, Shield
+  Home, Users, MessageSquare, Trophy, FileText, Settings, LogOut, Shield, Download
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { InstallPrompt } from '@/components/InstallPrompt'
+import { useEffect, useState } from 'react'
 
 const navItems = [
   { href: '/home', label: 'Home', icon: Home },
   { href: '/feed', label: 'Activity', icon: MessageSquare },
   { href: '/directory', label: 'Directory', icon: Users },
-  { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
+  { href: '/leaderboard', label: 'Board', icon: Trophy },
   { href: '/report', label: 'Report', icon: FileText },
 ]
 
@@ -36,6 +37,27 @@ export function Navigation({ member }: NavigationProps) {
 
   return (
     <>
+      {/* ── Mobile top header ── */}
+      <header className="md:hidden fixed top-0 left-0 right-0 bg-primary z-30 flex items-center justify-between px-3 py-2 border-b border-white/10">
+        {/* Logo */}
+        <img
+          src="/Refer%20Elk%20Grove.png"
+          alt="Refer Elk Grove"
+          style={{ height: 38, width: 'auto', filter: 'brightness(0) invert(1)' }}
+        />
+        {/* Right actions */}
+        <div className="flex items-center gap-1">
+          <MobileInstallButton />
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+          >
+            <LogOut size={16} />
+            <span>Sign out</span>
+          </button>
+        </div>
+      </header>
+
       {/* Sidebar — desktop */}
       <aside className="hidden md:flex flex-col w-60 bg-primary text-white min-h-screen fixed left-0 top-0 z-30">
         {/* Logo */}
@@ -117,7 +139,7 @@ export function Navigation({ member }: NavigationProps) {
               key={href}
               href={href}
               className={cn(
-                'flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors',
+                'flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors',
                 pathname === href ? 'text-accent' : 'text-white/60 hover:text-white'
               )}
             >
@@ -128,7 +150,7 @@ export function Navigation({ member }: NavigationProps) {
           <Link
             href="/profile"
             className={cn(
-              'flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors',
+              'flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors',
               pathname === '/profile' ? 'text-accent' : 'text-white/60 hover:text-white'
             )}
           >
@@ -138,5 +160,58 @@ export function Navigation({ member }: NavigationProps) {
         </div>
       </nav>
     </>
+  )
+}
+
+// Inline mobile install button so it has its own state
+function MobileInstallButton() {
+  const [prompt, setPrompt] = useState<Event & { prompt: () => Promise<void> } | null>(null)
+  const [isIOS, setIsIOS] = useState(false)
+  const [showIOSHint, setShowIOSHint] = useState(false)
+  const [installed, setInstalled] = useState(false)
+
+  useEffect(() => {
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setInstalled(true)
+      return
+    }
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window.navigator as any).standalone
+    setIsIOS(ios)
+    const handler = (e: Event) => { e.preventDefault(); setPrompt(e as any) }
+    window.addEventListener('beforeinstallprompt', handler)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  if (installed) return null
+
+  if (isIOS) {
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setShowIOSHint(h => !h)}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+        >
+          <Download size={16} />
+          <span>Install</span>
+        </button>
+        {showIOSHint && (
+          <div className="absolute right-0 top-10 w-56 p-3 bg-primary border border-white/20 rounded-xl text-xs text-white/80 leading-relaxed z-50 shadow-xl">
+            Tap the <strong className="text-white">Share</strong> button in Safari, then <strong className="text-white">Add to Home Screen</strong>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  if (!prompt) return null
+
+  return (
+    <button
+      onClick={async () => { await prompt.prompt(); setPrompt(null) }}
+      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+    >
+      <Download size={16} />
+      <span>Install</span>
+    </button>
   )
 }

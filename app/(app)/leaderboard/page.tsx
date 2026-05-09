@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar } from '@/components/ui/avatar'
 import type { Member } from '@/lib/types'
@@ -14,10 +14,10 @@ export default async function LeaderboardPage({ searchParams }: PageProps) {
   const { range = 'week' } = await searchParams
   const dateRange = (range as DateRange) === 'month' ? 'month' : range === 'all' ? 'all' : 'week'
 
-  const supabase = await createClient()
+  const admin = createAdminClient()
 
   // Get active members
-  const { data: members } = await supabase
+  const { data: members } = await admin
     .from('members')
     .select('id, name, business_name, photo_url, category')
     .eq('status', 'active')
@@ -35,7 +35,7 @@ export default async function LeaderboardPage({ searchParams }: PageProps) {
   }
 
   // Get posts in range
-  let query = supabase.from('posts').select('author_id, to_member_id, type')
+  let query = admin.from('posts').select('author_id, to_member_id, type')
   if (dateFilter) query = query.gte('created_at', dateFilter)
   const { data: posts } = await query
 
