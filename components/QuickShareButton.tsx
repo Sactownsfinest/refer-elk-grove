@@ -19,7 +19,6 @@ export function QuickShareButton({ member }: QuickShareButtonProps) {
     if (member.phone) lines.push(`📞 ${member.phone}`)
     if (member.website_url) lines.push(`🌐 ${member.website_url}`)
     if (member.google_review_url) lines.push(`⭐ Leave a review: ${member.google_review_url}`)
-    if (member.bio) lines.push(`\n"${member.bio}"`)
     return lines.join('\n')
   }
 
