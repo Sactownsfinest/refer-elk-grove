@@ -17,13 +17,13 @@ export default async function HomePage() {
     .single()
 
   const [{ data: announcements }, { data: posts }, { data: weekPosts }] = await Promise.all([
-    supabase
+    admin
       .from('announcements')
       .select('*, author:members!announcements_author_id_fkey(id, name)')
       .order('is_pinned', { ascending: false })
       .order('created_at', { ascending: false })
       .limit(5),
-    supabase
+    admin
       .from('posts')
       .select(`
         *,
@@ -32,7 +32,7 @@ export default async function HomePage() {
       `)
       .order('created_at', { ascending: false })
       .limit(10),
-    supabase
+    admin
       .from('posts')
       .select('type')
       .gte('created_at', getMonday())
@@ -61,7 +61,6 @@ export default async function HomePage() {
         />
         {/* Content */}
         <div className="relative z-10 px-6 py-8 flex flex-col justify-end" style={{ minHeight: 220 }}>
-          <p className="text-white/70 text-sm font-medium tracking-wide uppercase mb-1">Refer Elk Grove</p>
           <h1 className="text-3xl font-bold text-white drop-shadow">
             Good {getGreeting()}, {member?.name?.split(' ')[0] || 'there'}! 👋
           </h1>

@@ -1,31 +1,17 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll() },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-        },
-      },
-    }
-  )
-
+  const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: member } = await supabase.from('members').select('role').eq('id', session.user.id).single()
-  if (!member || member.role !== 'admin') {
+  const admin = createAdminClient()
+  const { data: caller } = await admin.from('members').select('role').eq('id', session.user.id).single()
+  if (!caller || caller.role !== 'admin') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  // This week
   const now = new Date()
   const day = now.getDay()
   const diff = day === 0 ? -6 : 1 - day
@@ -33,15 +19,12 @@ export async function GET() {
   monday.setDate(now.getDate() + diff)
   monday.setHours(0, 0, 0, 0)
 
-  const { data: members } = await supabase
-    .from('members')
-    .select('id, name, business_name, category')
-    .eq('status', 'active')
-
-  const { data: posts } = await supabase
-    .from('posts')
-    .select('author_id, to_member_id, type, amount, client_name, created_at')
-    .gte('created_at', monday.toISOString())
+  const [{ data: members }, { data: posts }] = await Promise.all([
+    admin.from('members').select('id, name, business_name, category').eq('status', 'active'),
+    admin.from('posts')
+      .select('author_id, to_member_id, type, amount, client_name, created_at')
+      .gte('created_at', monday.toISOString()),
+  ])
 
   const weekPosts = posts || []
 

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -8,23 +8,23 @@ import { formatDate } from '@/lib/utils'
 import Link from 'next/link'
 
 export default async function ReportPage() {
-  const supabase = await createClient()
+  const admin = createAdminClient()
 
   const monday = getMonday()
   const sunday = getSunday(monday)
 
-  const { data: members } = await supabase
+  const { data: members } = await admin
     .from('members')
     .select('id, name, business_name, photo_url, category')
     .eq('status', 'active')
 
-  const { data: posts } = await supabase
+  const { data: posts } = await admin
     .from('posts')
     .select('author_id, to_member_id, type, amount, client_name, created_at')
     .gte('created_at', monday.toISOString())
     .lte('created_at', sunday.toISOString())
 
-  const { data: allPosts } = await supabase
+  const { data: allPosts } = await admin
     .from('posts')
     .select('author_id, to_member_id, type, amount')
 

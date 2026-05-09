@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -6,9 +6,9 @@ import { MemberAdminActions } from '@/components/admin/MemberAdminActions'
 import type { Member } from '@/lib/types'
 
 export default async function AdminMembersPage() {
-  const supabase = await createClient()
+  const admin = createAdminClient()
 
-  const { data: members } = await supabase
+  const { data: members } = await admin
     .from('members')
     .select('*')
     .order('created_at', { ascending: true })

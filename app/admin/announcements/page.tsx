@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AnnouncementCard } from '@/components/AnnouncementCard'
 import { AnnouncementForm } from '@/components/admin/AnnouncementForm'
@@ -6,9 +6,10 @@ import type { Announcement } from '@/lib/types'
 
 export default async function AdminAnnouncementsPage() {
   const supabase = await createClient()
+  const admin = createAdminClient()
   const { data: { session } } = await supabase.auth.getSession()
 
-  const { data: announcements } = await supabase
+  const { data: announcements } = await admin
     .from('announcements')
     .select('*, author:members!announcements_author_id_fkey(id, name)')
     .order('is_pinned', { ascending: false })

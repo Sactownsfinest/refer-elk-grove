@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -8,9 +8,9 @@ import { formatDate } from '@/lib/utils'
 import { UserCheck } from 'lucide-react'
 
 export default async function AdminPage() {
-  const supabase = await createClient()
+  const admin = createAdminClient()
 
-  const { data: pending } = await supabase
+  const { data: pending } = await admin
     .from('members')
     .select('*')
     .eq('status', 'pending')
