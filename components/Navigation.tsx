@@ -42,7 +42,7 @@ export function Navigation({ member }: NavigationProps) {
           <img
             src="/Refer%20Elk%20Grove.png"
             alt="Refer Elk Grove"
-            style={{ height: 64, width: 'auto', filter: 'brightness(0) invert(1)' }}
+            style={{ height: 96, width: 'auto', filter: 'brightness(0) invert(1)' }}
             className="drop-shadow-lg"
           />
         </div>

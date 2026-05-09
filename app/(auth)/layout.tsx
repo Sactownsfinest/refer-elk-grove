@@ -8,7 +8,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             src="/Refer%20Elk%20Grove.png"
             alt="Refer Elk Grove"
             className="logo-splash mx-auto drop-shadow-2xl"
-            style={{ height: 140, width: 'auto' }}
+            style={{ height: 210, width: 'auto' }}
           />
           <p className="text-white/70 text-sm mt-3 tracking-wide">Business Referral Network</p>
         </div>

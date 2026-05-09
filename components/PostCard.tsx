@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge'
 import type { Post } from '@/lib/types'
 import { formatRelative, formatCurrency } from '@/lib/utils'
 import { Trash2 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
 
 const typeConfig = {
@@ -29,9 +28,12 @@ export function PostCard({ post, currentUserId, currentUserRole, onDelete }: Pos
   async function handleDelete() {
     if (!confirm('Delete this post?')) return
     setDeleting(true)
-    const supabase = createClient()
-    await supabase.from('posts').delete().eq('id', post.id)
-    onDelete?.(post.id)
+    const res = await fetch('/api/posts/delete', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: post.id }),
+    })
+    if (res.ok) onDelete?.(post.id)
     setDeleting(false)
   }
 
