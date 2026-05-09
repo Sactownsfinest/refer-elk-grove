@@ -1,8 +1,8 @@
 import { createAdminClient } from '@/lib/supabase/server'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar } from '@/components/ui/avatar'
 import type { Member } from '@/lib/types'
-import { Trophy, Medal } from 'lucide-react'
+import { Trophy } from 'lucide-react'
 
 type DateRange = 'week' | 'month' | 'all'
 
@@ -16,13 +16,11 @@ export default async function LeaderboardPage({ searchParams }: PageProps) {
 
   const admin = createAdminClient()
 
-  // Get active members
   const { data: members } = await admin
     .from('members')
     .select('id, name, business_name, photo_url, category')
     .eq('status', 'active')
 
-  // Date filter
   let dateFilter = ''
   if (dateRange === 'week') {
     const monday = getMonday()
@@ -34,21 +32,20 @@ export default async function LeaderboardPage({ searchParams }: PageProps) {
     dateFilter = start.toISOString()
   }
 
-  // Get posts in range
   let query = admin.from('posts').select('author_id, to_member_id, type')
   if (dateFilter) query = query.gte('created_at', dateFilter)
   const { data: posts } = await query
 
-  // Build leaderboard
   const board = (members || []).map(member => {
-    const referralsGiven = posts?.filter(p => p.author_id === member.id && p.type === 'referral').length ?? 0
-    const closesLogged = posts?.filter(p => p.to_member_id === member.id && p.type === 'close').length ?? 0
+    const referralsGiven    = posts?.filter(p => p.author_id   === member.id && p.type === 'referral').length ?? 0
+    const closesLogged      = posts?.filter(p => p.to_member_id === member.id && p.type === 'close').length ?? 0
     const shoutoutsReceived = posts?.filter(p => p.to_member_id === member.id && p.type === 'shoutout').length ?? 0
     const total = referralsGiven + closesLogged + shoutoutsReceived
     return { member: member as Member, referralsGiven, closesLogged, shoutoutsReceived, total }
   }).sort((a, b) => b.total - a.total)
 
   const rangeLabel = dateRange === 'week' ? 'This Week' : dateRange === 'month' ? 'This Month' : 'All Time'
+  const medal = (idx: number) => idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : null
 
   return (
     <div className="space-y-5">
@@ -63,7 +60,7 @@ export default async function LeaderboardPage({ searchParams }: PageProps) {
           <a
             key={r}
             href={`/leaderboard?range=${r}`}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex-1 text-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
               dateRange === r
                 ? 'bg-primary text-white'
                 : 'bg-white border border-border text-muted hover:text-gray-900'
@@ -74,69 +71,74 @@ export default async function LeaderboardPage({ searchParams }: PageProps) {
         ))}
       </div>
 
-      {/* Top 3 podium */}
+      {/* Top 3 podium — only when there's activity */}
       {board.length >= 3 && board[0].total > 0 && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2">
           {[board[1], board[0], board[2]].map((entry, idx) => {
             const rank = idx === 1 ? 1 : idx === 0 ? 2 : 3
-            const heights = ['h-24', 'h-32', 'h-20']
-            const colors = ['bg-gray-100', 'bg-accent/30', 'bg-orange-100']
+            const heights = ['h-28', 'h-36', 'h-24']
+            const colors  = ['bg-gray-100', 'bg-accent/25', 'bg-orange-50']
             return (
-              <div key={entry.member.id} className={`${colors[idx]} rounded-xl p-3 text-center flex flex-col items-center justify-end ${heights[idx]}`}>
+              <div key={entry.member.id} className={`${colors[idx]} rounded-xl p-2 text-center flex flex-col items-center justify-end ${heights[idx]}`}>
                 <Avatar src={entry.member.photo_url} name={entry.member.name} size="md" className="mb-1" />
-                <p className="text-xs font-bold text-gray-900 leading-tight truncate w-full">{entry.member.name?.split(' ')[0]}</p>
+                <p className="text-xs font-bold text-gray-900 leading-tight truncate w-full px-1">
+                  {entry.member.name?.split(' ')[0]}
+                </p>
                 <p className="text-xs text-muted">{entry.total} pts</p>
-                <span className="text-lg">{rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'}</span>
+                <span className="text-base mt-0.5">{rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'}</span>
               </div>
             )
           })}
         </div>
       )}
 
-      {/* Full table */}
+      {/* Rankings list */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy size={18} className="text-accent-dark" />
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Trophy size={16} className="text-accent-dark" />
             {rangeLabel} Rankings
           </CardTitle>
         </CardHeader>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left">
-                <th className="px-4 py-3 text-xs text-muted font-medium w-10">#</th>
-                <th className="px-4 py-3 text-xs text-muted font-medium">Member</th>
-                <th className="px-4 py-3 text-xs text-muted font-medium text-center">🤝 Refs</th>
-                <th className="px-4 py-3 text-xs text-muted font-medium text-center">💰 Closes</th>
-                <th className="px-4 py-3 text-xs text-muted font-medium text-center">🎉 Props</th>
-                <th className="px-4 py-3 text-xs text-muted font-medium text-right">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {board.map((entry, idx) => (
-                <tr key={entry.member.id} className="border-b border-border/50 last:border-0 hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 text-muted font-medium">
-                    {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Avatar src={entry.member.photo_url} name={entry.member.name} size="sm" />
-                      <div>
-                        <p className="font-medium text-gray-900">{entry.member.name}</p>
-                        <p className="text-xs text-muted">{entry.member.business_name}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-center font-semibold text-secondary">{entry.referralsGiven}</td>
-                  <td className="px-4 py-3 text-center font-semibold text-accent-dark">{entry.closesLogged}</td>
-                  <td className="px-4 py-3 text-center font-semibold text-primary">{entry.shoutoutsReceived}</td>
-                  <td className="px-4 py-3 text-right font-bold text-gray-900">{entry.total}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+
+        {board.length === 0 ? (
+          <div className="text-center py-10 text-muted text-sm">No activity yet this period.</div>
+        ) : (
+          <div className="divide-y divide-border">
+            {board.map((entry, idx) => (
+              <div key={entry.member.id} className="flex items-center gap-3 px-4 py-3">
+                {/* Rank */}
+                <div className="w-7 text-center shrink-0">
+                  {medal(idx)
+                    ? <span className="text-lg">{medal(idx)}</span>
+                    : <span className="text-sm font-semibold text-muted">{idx + 1}</span>
+                  }
+                </div>
+
+                {/* Avatar */}
+                <Avatar src={entry.member.photo_url} name={entry.member.name} size="sm" className="shrink-0" />
+
+                {/* Name + stats */}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 text-sm truncate">{entry.member.name}</p>
+                  <p className="text-xs text-muted truncate">{entry.member.business_name}</p>
+                  {/* Stat chips */}
+                  <div className="flex gap-2 mt-1 flex-wrap">
+                    <span className="text-xs text-secondary font-medium">🤝 {entry.referralsGiven}</span>
+                    <span className="text-xs text-accent-dark font-medium">💰 {entry.closesLogged}</span>
+                    <span className="text-xs text-primary font-medium">🎉 {entry.shoutoutsReceived}</span>
+                  </div>
+                </div>
+
+                {/* Total */}
+                <div className="shrink-0 text-right">
+                  <p className="text-lg font-bold text-gray-900">{entry.total}</p>
+                  <p className="text-[10px] text-muted">pts</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
     </div>
   )
