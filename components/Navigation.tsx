@@ -38,11 +38,11 @@ export function Navigation({ member }: NavigationProps) {
       {/* Sidebar — desktop */}
       <aside className="hidden md:flex flex-col w-60 bg-primary text-white min-h-screen fixed left-0 top-0 z-30">
         {/* Logo */}
-        <div className="px-5 py-5 border-b border-white/10 flex items-center justify-center">
+        <div className="border-b border-white/10">
           <img
             src="/Refer%20Elk%20Grove.png"
             alt="Refer Elk Grove"
-            style={{ height: 96, width: 'auto', filter: 'brightness(0) invert(1)' }}
+            style={{ width: '100%', height: 'auto', display: 'block', filter: 'brightness(0) invert(1)', padding: '10px 12px' }}
             className="drop-shadow-lg"
           />
         </div>
