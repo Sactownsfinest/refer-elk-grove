@@ -41,7 +41,7 @@ export function Navigation({ member }: NavigationProps) {
       <header className="md:hidden fixed top-0 left-0 right-0 bg-primary z-30 flex items-center justify-between px-3 py-2 border-b border-white/10">
         {/* Logo */}
         <img
-          src="/Refer%20Elk%20Grove.png"
+          src="/logo.png"
           alt="Refer Elk Grove"
           style={{ height: 38, width: 'auto', filter: 'brightness(0) invert(1)' }}
         />
@@ -63,7 +63,7 @@ export function Navigation({ member }: NavigationProps) {
         {/* Logo */}
         <div className="border-b border-white/10">
           <img
-            src="/Refer%20Elk%20Grove.png"
+            src="/logo.png"
             alt="Refer Elk Grove"
             style={{ width: '100%', height: 'auto', display: 'block', filter: 'brightness(0) invert(1)', padding: '10px 12px' }}
             className="drop-shadow-lg"

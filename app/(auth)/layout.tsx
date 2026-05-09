@@ -5,7 +5,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         {/* Logo splash */}
         <div className="text-center mb-8">
           <img
-            src="/Refer%20Elk%20Grove.png"
+            src="/logo.png"
             alt="Refer Elk Grove"
             className="logo-splash mx-auto drop-shadow-2xl"
             style={{ height: 320, width: 'auto', filter: 'brightness(0) invert(1)' }}

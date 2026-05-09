@@ -59,7 +59,7 @@ export default function AuthCallbackPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <img
-            src="/Refer%20Elk%20Grove.png"
+            src="/logo.png"
             alt="Refer Elk Grove"
             style={{ height: 120, width: 'auto', filter: 'brightness(0) invert(1)' }}
             className="mx-auto drop-shadow-xl"
