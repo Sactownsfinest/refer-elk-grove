@@ -1,46 +1,36 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import type { Member } from '@/lib/types'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Phone, Globe, MapPin, Star, ArrowLeft } from 'lucide-react'
+import { Phone, Globe, MapPin, Mail, ArrowLeft } from 'lucide-react'
 import { QuickShareButton } from '@/components/QuickShareButton'
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function MemberProfilePage({ params }: PageProps) {
   const { id } = await params
-  const supabase = await createClient()
+  const admin = createAdminClient()
 
-  const { data: member } = await supabase
-    .from('members')
-    .select('*')
-    .eq('id', id)
-    .eq('status', 'active')
-    .single()
+  const [{ data: member }, { data: authUser }, { data: postsGiven }, { data: postsReceived }] = await Promise.all([
+    admin.from('members').select('*').eq('id', id).eq('status', 'active').single(),
+    admin.auth.admin.getUserById(id),
+    admin.from('posts').select('type').eq('author_id', id).eq('type', 'referral'),
+    admin.from('posts').select('type').eq('to_member_id', id),
+  ])
 
   if (!member) notFound()
 
-  const { data: postsGiven } = await supabase
-    .from('posts')
-    .select('type')
-    .eq('author_id', id)
-    .in('type', ['referral'])
-
-  const { data: postsReceived } = await supabase
-    .from('posts')
-    .select('type')
-    .eq('to_member_id', id)
-
+  const m = { ...member, email: authUser?.user?.email ?? '' } as Member
   const referralsGiven = postsGiven?.length ?? 0
   const closesReceived = postsReceived?.filter(p => p.type === 'close').length ?? 0
   const shoutoutsReceived = postsReceived?.filter(p => p.type === 'shoutout').length ?? 0
-
-  const m = member as Member
 
   const socialLinks = [
     m.google_review_url && { href: m.google_review_url, label: '⭐ Leave a Google Review', bg: 'bg-yellow-50 border-yellow-200 text-yellow-800' },
@@ -98,6 +88,12 @@ export default async function MemberProfilePage({ params }: PageProps) {
               {m.phone}
             </a>
           )}
+          {m.email && (
+            <a href={`mailto:${m.email}`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-primary transition-colors">
+              <Mail size={15} className="text-muted shrink-0" />
+              {m.email}
+            </a>
+          )}
           {m.address && (
             <div className="flex items-start gap-2 text-sm text-gray-700">
               <MapPin size={15} className="text-muted shrink-0 mt-0.5" />
@@ -131,7 +127,6 @@ export default async function MemberProfilePage({ params }: PageProps) {
         </Card>
       )}
 
-      {/* Quick share */}
       <QuickShareButton member={m} />
     </div>
   )

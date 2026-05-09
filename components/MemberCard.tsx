@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import type { Member } from '@/lib/types'
-import { Phone, Globe, MapPin, Star, Copy, Check, ExternalLink } from 'lucide-react'
+import { Phone, Globe, MapPin, Mail, Copy, Check, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -86,6 +86,12 @@ export function MemberCard({ member, compact = false }: MemberCardProps) {
             <a href={`tel:${member.phone}`} className="flex items-center gap-2 text-sm text-muted hover:text-primary transition-colors">
               <Phone size={14} />
               {member.phone}
+            </a>
+          )}
+          {member.email && (
+            <a href={`mailto:${member.email}`} className="flex items-center gap-2 text-sm text-muted hover:text-primary transition-colors">
+              <Mail size={14} />
+              <span className="truncate">{member.email}</span>
             </a>
           )}
           {member.address && (
