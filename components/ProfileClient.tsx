@@ -8,7 +8,6 @@ import type { Member } from '@/lib/types'
 import {
   Camera, Save, Phone, MapPin, Globe, Star, ExternalLink, Link
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 
 const CATEGORIES = [
   'Banking', 'Catering', 'Commercial', 'Consulting', 'Drinking Water',
@@ -50,14 +49,13 @@ export function ProfileClient({ member: initial, email }: { member: Member; emai
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
-    const supabase = createClient()
-    const ext = file.name.split('.').pop()
-    const path = `${member.id}/avatar.${ext}`
-    const { error: uploadErr } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
-    if (!uploadErr) {
-      const { data } = supabase.storage.from('avatars').getPublicUrl(path)
-      setForm(prev => ({ ...prev, photo_url: data.publicUrl }))
-      setMember(prev => ({ ...prev, photo_url: data.publicUrl }))
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await fetch('/api/profile/upload-avatar', { method: 'POST', body: fd })
+    if (res.ok) {
+      const { url } = await res.json()
+      setForm(prev => ({ ...prev, photo_url: url }))
+      setMember(prev => ({ ...prev, photo_url: url }))
     }
     setUploading(false)
   }
