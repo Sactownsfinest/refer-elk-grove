@@ -302,15 +302,6 @@ function ActivityComposer({ currentMember, members, onNewPost }: {
             </div>
           )}
 
-          {/* Who closed (close only) — auto-set to logged-in user */}
-          {type === 'close' && (
-            <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Who closed the sale?</label>
-              <div className="w-full rounded-lg border border-border bg-gray-50 px-3 py-2 text-sm text-gray-700">
-                {currentMember.name} — {currentMember.business_name}
-              </div>
-            </div>
-          )}
 
           {/* Client name (referral/close) */}
           {(type === 'referral' || type === 'close') && (
