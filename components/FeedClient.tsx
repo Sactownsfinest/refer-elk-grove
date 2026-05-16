@@ -213,7 +213,8 @@ function ActivityComposer({ currentMember, members, onNewPost }: {
   const [error, setError]         = useState('')
 
   const otherMembers = members.filter(m => m.id !== currentMember.id)
-  const isValid = toMemberId !== ''
+  const needsToMember = type !== 'close'
+  const isValid = type === 'close' || toMemberId !== ''
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -224,7 +225,7 @@ function ActivityComposer({ currentMember, members, onNewPost }: {
     const res = await fetch('/api/posts/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type, to_member_id: toMemberId, content, client_name: clientName, amount }),
+      body: JSON.stringify({ type, to_member_id: type === 'close' ? currentMember.id : toMemberId, content, client_name: clientName, amount }),
     })
 
     if (!res.ok) {
@@ -277,27 +278,39 @@ function ActivityComposer({ currentMember, members, onNewPost }: {
             ))}
           </div>
 
-          {/* Member selector */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">
-              {type === 'close' ? 'Who closed the deal?' : type === 'shoutout' ? 'Shout out to...' : 'Referred to...'}
-            </label>
-            {otherMembers.length === 0 ? (
-              <p className="text-sm text-destructive">No members found. Try refreshing.</p>
-            ) : (
-              <select
-                value={toMemberId}
-                onChange={e => setToMemberId(e.target.value)}
-                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                required
-              >
-                <option value="">Select a member...</option>
-                {otherMembers.map(m => (
-                  <option key={m.id} value={m.id}>{m.name} — {m.business_name}</option>
-                ))}
-              </select>
-            )}
-          </div>
+          {/* Member selector (not shown for close — closer is always the logged-in user) */}
+          {needsToMember && (
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-1">
+                {type === 'shoutout' ? 'Shout out to...' : 'Referred to...'}
+              </label>
+              {otherMembers.length === 0 ? (
+                <p className="text-sm text-destructive">No members found. Try refreshing.</p>
+              ) : (
+                <select
+                  value={toMemberId}
+                  onChange={e => setToMemberId(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                >
+                  <option value="">Select a member...</option>
+                  {otherMembers.map(m => (
+                    <option key={m.id} value={m.id}>{m.name} — {m.business_name}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
+
+          {/* Who closed (close only) — auto-set to logged-in user */}
+          {type === 'close' && (
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-1">Who closed the sale?</label>
+              <div className="w-full rounded-lg border border-border bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                {currentMember.name} — {currentMember.business_name}
+              </div>
+            </div>
+          )}
 
           {/* Client name (referral/close) */}
           {(type === 'referral' || type === 'close') && (
