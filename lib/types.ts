@@ -46,6 +46,22 @@ export interface Announcement {
   author?: Member
 }
 
+export type EventSource = 'group' | 'chamber'
+
+export interface Event {
+  id: string
+  author_id: string
+  title: string
+  description: string | null
+  start_time: string
+  all_day: boolean
+  location: string | null
+  url: string | null
+  source: EventSource
+  created_at: string
+  author?: Member
+}
+
 export interface LeaderboardEntry {
   member_id: string
   member: Member

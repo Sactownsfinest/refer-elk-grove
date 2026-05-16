@@ -3,7 +3,9 @@ import { AnnouncementCard } from '@/components/AnnouncementCard'
 import { PostFeed } from '@/components/PostFeed'
 import { Card, CardContent } from '@/components/ui/card'
 import Link from 'next/link'
-import type { Announcement, Member, Post } from '@/lib/types'
+import type { Announcement, Event, Member, Post } from '@/lib/types'
+import { formatDate, formatTime } from '@/lib/utils'
+import { CalendarDays, MapPin } from 'lucide-react'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -16,7 +18,10 @@ export default async function HomePage() {
     .eq('id', session!.user.id)
     .single()
 
-  const [{ data: announcements }, { data: posts }, { data: weekPosts }] = await Promise.all([
+  const nextWeek = new Date()
+  nextWeek.setDate(nextWeek.getDate() + 7)
+
+  const [{ data: announcements }, { data: posts }, { data: weekPosts }, { data: upcomingEvents }] = await Promise.all([
     admin
       .from('announcements')
       .select('*, author:members!announcements_author_id_fkey(id, name)')
@@ -37,6 +42,13 @@ export default async function HomePage() {
       .select('type')
       .gte('created_at', getMonday())
       .in('type', ['referral', 'close']),
+    admin
+      .from('events')
+      .select('*')
+      .gte('start_time', new Date().toISOString())
+      .lte('start_time', nextWeek.toISOString())
+      .order('start_time', { ascending: true })
+      .limit(5),
   ])
 
   const weekReferrals = weekPosts?.filter(p => p.type === 'referral').length ?? 0
@@ -92,6 +104,55 @@ export default async function HomePage() {
               <AnnouncementCard key={a.id} announcement={a as Announcement} />
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Upcoming events */}
+      {upcomingEvents && upcomingEvents.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold text-gray-900 flex items-center gap-1.5">
+              <CalendarDays size={16} className="text-primary" />
+              Upcoming This Week
+            </h2>
+            <Link href="/events" className="text-sm text-primary hover:underline font-medium">
+              View all →
+            </Link>
+          </div>
+          <Card>
+            <div className="divide-y divide-border">
+              {(upcomingEvents as Event[]).map(event => (
+                <div key={event.id} className="px-4 py-3 flex items-start gap-3">
+                  <div className="shrink-0 text-center min-w-[36px]">
+                    <p className="text-xs font-bold text-primary uppercase">
+                      {new Date(event.start_time).toLocaleDateString('en-US', { month: 'short' })}
+                    </p>
+                    <p className="text-lg font-bold text-gray-900 leading-none">
+                      {new Date(event.start_time).getDate()}
+                    </p>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${event.source === 'chamber' ? 'bg-amber-100 text-amber-700' : 'bg-primary/10 text-primary'}`}>
+                        {event.source === 'chamber' ? '🏛️ Chamber' : '🏠 Refer EG'}
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium text-gray-900 truncate">{event.title}</p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      {!event.all_day && (
+                        <p className="text-xs text-muted">{formatTime(event.start_time)}</p>
+                      )}
+                      {event.location && (
+                        <p className="text-xs text-muted flex items-center gap-0.5">
+                          <MapPin size={10} /> {event.location}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
         </div>
       )}
 

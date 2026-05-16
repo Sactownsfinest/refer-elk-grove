@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { Avatar } from '@/components/ui/avatar'
 import type { Member } from '@/lib/types'
 import {
-  Home, Users, MessageSquare, Trophy, FileText, Settings, LogOut, Shield, Download
+  Home, Users, MessageSquare, Trophy, FileText, Settings, LogOut, Shield, Download, CalendarDays
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -13,11 +13,12 @@ import { InstallPrompt } from '@/components/InstallPrompt'
 import { useEffect, useState } from 'react'
 
 const navItems = [
-  { href: '/home', label: 'Home', icon: Home },
-  { href: '/feed', label: 'Activity', icon: MessageSquare },
+  { href: '/home',      label: 'Home',      icon: Home },
+  { href: '/feed',      label: 'Activity',  icon: MessageSquare },
+  { href: '/events',    label: 'Events',    icon: CalendarDays },
   { href: '/directory', label: 'Directory', icon: Users },
-  { href: '/leaderboard', label: 'Board', icon: Trophy },
-  { href: '/report', label: 'Report', icon: FileText },
+  { href: '/leaderboard', label: 'Board',   icon: Trophy },
+  { href: '/report',    label: 'Report',    icon: FileText },
 ]
 
 interface NavigationProps {
