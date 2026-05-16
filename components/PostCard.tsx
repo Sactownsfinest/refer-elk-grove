@@ -46,7 +46,7 @@ export function PostCard({ post, currentUserId, currentUserRole, onDelete }: Pos
           <Badge variant={config.variant}>
             {config.emoji} {config.label}
           </Badge>
-          {post.to_member && post.type !== 'message' && (
+          {post.to_member && post.type !== 'message' && post.type !== 'close' && (
             <span className="text-xs text-muted">→ {post.to_member.name}</span>
           )}
           <span className="text-xs text-muted ml-auto">{formatRelative(post.created_at)}</span>
@@ -73,7 +73,7 @@ export function PostCard({ post, currentUserId, currentUserRole, onDelete }: Pos
         {post.type === 'close' && (
           <div className="mt-2 p-3 bg-yellow-50 rounded-lg border border-yellow-100">
             <p className="text-sm font-medium text-yellow-800">
-              {post.to_member?.name || 'A member'} closed
+              {post.author?.name || 'A member'} closed
               {post.client_name ? ` ${post.client_name}` : ' a deal'}
               {post.amount ? ` — ${formatCurrency(post.amount)}` : ''}
             </p>

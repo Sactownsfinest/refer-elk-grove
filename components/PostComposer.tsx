@@ -31,8 +31,8 @@ export function PostComposer({ currentMember, members, onPost }: PostComposerPro
   const [error, setError] = useState('')
 
   const otherMembers = members.filter(m => m.id !== currentMember.id)
-  const needsToMember = type !== 'message'
-  const isValid = content.trim() || (needsToMember && toMemberId)
+  const needsToMember = type !== 'message' && type !== 'close'
+  const isValid = type === 'close' || content.trim() || (needsToMember && toMemberId)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -43,7 +43,7 @@ export function PostComposer({ currentMember, members, onPost }: PostComposerPro
     const res = await fetch('/api/posts/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type, to_member_id: toMemberId, content, client_name: clientName, amount }),
+      body: JSON.stringify({ type, to_member_id: type === 'close' ? currentMember.id : toMemberId, content, client_name: clientName, amount }),
     })
 
     if (!res.ok) {
@@ -99,7 +99,7 @@ export function PostComposer({ currentMember, members, onPost }: PostComposerPro
           {needsToMember && (
             <div className="mb-3">
               <label className="text-sm font-medium text-gray-700 block mb-1">
-                {type === 'close' ? 'Who closed the deal?' : type === 'shoutout' ? 'Shout out to...' : 'Referred to...'}
+                {type === 'shoutout' ? 'Shout out to...' : 'Referred to...'}
               </label>
               {otherMembers.length === 0 ? (
                 <p className="text-sm text-destructive">No other members found. Try refreshing.</p>
@@ -118,6 +118,16 @@ export function PostComposer({ currentMember, members, onPost }: PostComposerPro
                   ))}
                 </select>
               )}
+            </div>
+          )}
+
+          {/* Who closed (close only) — auto-set to logged-in user */}
+          {type === 'close' && (
+            <div className="mb-3">
+              <label className="text-sm font-medium text-gray-700 block mb-1">Who closed the sale?</label>
+              <div className="w-full rounded-lg border border-border bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                {currentMember.name} — {currentMember.business_name}
+              </div>
             </div>
           )}
 
