@@ -28,7 +28,7 @@ export async function middleware(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
 
   const { pathname } = request.nextUrl
-  const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/auth/')
+  const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/auth/') || pathname.startsWith('/invite')
   const isApiRoute = pathname.startsWith('/api')
 
   if (isApiRoute) return supabaseResponse
