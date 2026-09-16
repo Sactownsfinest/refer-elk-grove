@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { MemberAdminActions } from '@/components/admin/MemberAdminActions'
+import { AddMemberForm } from '@/components/admin/AddMemberForm'
 import type { Member } from '@/lib/types'
 
 export default async function AdminMembersPage() {
@@ -19,6 +20,8 @@ export default async function AdminMembersPage() {
         <h1 className="text-2xl font-bold text-gray-900">All Members</h1>
         <p className="text-muted text-sm mt-1">{members?.length ?? 0} total accounts</p>
       </div>
+
+      <AddMemberForm />
 
       <Card>
         <div className="overflow-x-auto">
