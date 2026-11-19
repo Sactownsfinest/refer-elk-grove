@@ -9,10 +9,11 @@ webPush.setVapidDetails(
 )
 
 export async function POST(request: Request) {
-  const { title, body, url = '/home', excludeMemberId } = await request.json()
+  const { title, body, url = '/home', excludeMemberId, toMemberId } = await request.json()
 
   const admin = createAdminClient()
   let query = admin.from('push_subscriptions').select('endpoint, p256dh, auth')
+  if (toMemberId) query = query.eq('member_id', toMemberId)
   if (excludeMemberId) query = query.neq('member_id', excludeMemberId)
 
   const { data: subs } = await query

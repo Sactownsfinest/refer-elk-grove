@@ -1,12 +1,13 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { PostCard } from '@/components/PostCard'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/input'
 import { Input } from '@/components/ui/input'
-import type { Member, Post, PostType } from '@/lib/types'
+import { POST_SELECT } from '@/lib/feed'
+import type { Member, Post, PostType, Reaction } from '@/lib/types'
 import { MessageSquare, Star, Handshake, DollarSign } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -19,13 +20,19 @@ const activityTypes: { type: PostType; label: string; icon: React.ReactNode; col
 ]
 
 interface FeedClientProps {
+  // Top-level posts and their replies, in one list.
   initialPosts: Post[]
+  initialReactions: Reaction[]
   currentMember: Member
   members: Member[]
 }
 
-export function FeedClient({ initialPosts, currentMember, members }: FeedClientProps) {
+const sameReaction = (a: Reaction, b: Reaction) =>
+  a.post_id === b.post_id && a.member_id === b.member_id && a.emoji === b.emoji
+
+export function FeedClient({ initialPosts, initialReactions, currentMember, members }: FeedClientProps) {
   const [posts, setPosts] = useState<Post[]>(initialPosts)
+  const [reactions, setReactions] = useState<Reaction[]>(initialReactions)
   const [tab, setTab] = useState<Tab>('chat')
 
   // Realtime for other users' posts
@@ -37,25 +44,107 @@ export function FeedClient({ initialPosts, currentMember, members }: FeedClientP
         if (payload.new.author_id === currentMember.id) return
         const { data } = await supabase
           .from('posts')
-          .select(`*, author:members!posts_author_id_fkey(id, name, business_name, photo_url, category), to_member:members!posts_to_member_id_fkey(id, name, business_name, photo_url)`)
+          .select(POST_SELECT)
           .eq('id', payload.new.id)
           .single()
-        if (data) setPosts(prev => [data as Post, ...prev])
+        if (data) handleNewPost(data as Post)
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_reactions' }, (payload) => {
+        const r = payload.new as Reaction
+        if (r.member_id === currentMember.id) return
+        setReactions(prev => (prev.some(x => sameReaction(x, r)) ? prev : [...prev, r]))
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_reactions' }, (payload) => {
+        const r = payload.old as Reaction
+        if (!r.post_id || r.member_id === currentMember.id) return
+        setReactions(prev => prev.filter(x => !sameReaction(x, r)))
       })
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [currentMember.id])
 
   function handleNewPost(post: Post) {
-    setPosts(prev => [post, ...prev])
+    setPosts(prev => (prev.some(p => p.id === post.id) ? prev : [post, ...prev]))
   }
 
   function handleDelete(id: string) {
-    setPosts(prev => prev.filter(p => p.id !== id))
+    // Deleting a post takes its replies with it.
+    setPosts(prev => prev.filter(p => p.id !== id && p.parent_id !== id))
   }
 
-  const chatPosts     = posts.filter(p => p.type === 'message')
-  const activityPosts = posts.filter(p => p.type !== 'message')
+  async function handleToggleReaction(postId: string, emoji: string) {
+    const mine: Reaction = { post_id: postId, member_id: currentMember.id, emoji }
+    const had = reactions.some(r => sameReaction(r, mine))
+    const apply = (on: boolean) => setReactions(prev => {
+      const rest = prev.filter(r => !sameReaction(r, mine))
+      return on ? [...rest, mine] : rest
+    })
+    apply(!had)
+    try {
+      const res = await fetch('/api/posts/react', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post_id: postId, emoji }),
+      })
+      if (!res.ok) throw new Error()
+      const json = await res.json()
+      apply(!!json.reacted)
+    } catch {
+      apply(had)
+    }
+  }
+
+  async function handleReply(parent: Post, content: string) {
+    try {
+      const res = await fetch('/api/posts/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'message', content, parent_id: parent.id }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok || !json.post) return (json.error as string) ?? 'Failed to reply.'
+      handleNewPost(json.post as Post)
+      if (parent.author_id !== currentMember.id) {
+        fetch('/api/push/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: `↩️ ${currentMember.name} replied to your post`,
+            body: content,
+            url: '/feed',
+            toMemberId: parent.author_id,
+          }),
+        }).catch(() => {})
+      }
+      return null
+    } catch {
+      return 'Failed to reply.'
+    }
+  }
+
+  const memberNames = useMemo(() => {
+    const names: Record<string, string> = {}
+    for (const m of members) if (m.name) names[m.id] = m.name
+    return names
+  }, [members])
+
+  const reactionsByPost = useMemo(() => {
+    const map: Record<string, Reaction[]> = {}
+    for (const r of reactions) (map[r.post_id] ||= []).push(r)
+    return map
+  }, [reactions])
+
+  // Replies under each post, oldest first.
+  const repliesByParent = useMemo(() => {
+    const map: Record<string, Post[]> = {}
+    for (const p of posts) if (p.parent_id) (map[p.parent_id] ||= []).push(p)
+    for (const list of Object.values(map)) list.sort((a, b) => a.created_at.localeCompare(b.created_at))
+    return map
+  }, [posts])
+
+  const topPosts      = posts.filter(p => !p.parent_id)
+  const chatPosts     = topPosts.filter(p => p.type === 'message')
+  const activityPosts = topPosts.filter(p => p.type !== 'message')
   const visiblePosts  = tab === 'chat' ? chatPosts : activityPosts
 
   return (
@@ -125,6 +214,11 @@ export function FeedClient({ initialPosts, currentMember, members }: FeedClientP
                 currentUserId={currentMember.id}
                 currentUserRole={currentMember.role}
                 onDelete={handleDelete}
+                replies={repliesByParent[post.id]}
+                reactionsByPost={reactionsByPost}
+                memberNames={memberNames}
+                onToggleReaction={handleToggleReaction}
+                onReply={handleReply}
               />
             ))}
           </div>

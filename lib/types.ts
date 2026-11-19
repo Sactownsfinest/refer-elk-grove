@@ -32,8 +32,15 @@ export interface Post {
   client_name: string | null
   amount: number | null
   created_at: string
+  parent_id?: string | null
   author?: Member
   to_member?: Member
+}
+
+export interface Reaction {
+  post_id: string
+  member_id: string
+  emoji: string
 }
 
 export interface Announcement {

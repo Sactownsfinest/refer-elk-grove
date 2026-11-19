@@ -1,6 +1,7 @@
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { FeedClient } from '@/components/FeedClient'
-import type { Member, Post } from '@/lib/types'
+import { loadFeed } from '@/lib/feed'
+import type { Member } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,14 +11,10 @@ export default async function FeedPage() {
 
   const admin = createAdminClient()
 
-  const [{ data: member }, { data: members }, { data: posts }] = await Promise.all([
+  const [{ data: member }, { data: members }, feed] = await Promise.all([
     admin.from('members').select('*').eq('id', session!.user.id).single(),
     admin.from('members').select('id, name, business_name, photo_url, category').eq('status', 'active').order('name'),
-    admin.from('posts').select(`
-      *,
-      author:members!posts_author_id_fkey(id, name, business_name, photo_url, category),
-      to_member:members!posts_to_member_id_fkey(id, name, business_name, photo_url)
-    `).order('created_at', { ascending: false }).limit(50),
+    loadFeed(admin, 50),
   ])
 
   return (
@@ -28,7 +25,8 @@ export default async function FeedPage() {
       </div>
 
       <FeedClient
-        initialPosts={(posts as Post[]) || []}
+        initialPosts={[...feed.posts, ...feed.replies]}
+        initialReactions={feed.reactions}
         currentMember={member as Member}
         members={(members as Member[]) || []}
       />

@@ -33,7 +33,8 @@ export function PostFeed({ initialPosts, currentMember, limit }: PostFeedProps) 
             .eq('id', payload.new.id)
             .single()
 
-          if (data) {
+          // Replies belong under their post on the Feed page, not in this list.
+          if (data && !data.parent_id) {
             setPosts(prev => [data as Post, ...prev])
           }
         }

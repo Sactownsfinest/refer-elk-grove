@@ -3,7 +3,8 @@ import { AnnouncementCard } from '@/components/AnnouncementCard'
 import { PostFeed } from '@/components/PostFeed'
 import { Card, CardContent } from '@/components/ui/card'
 import Link from 'next/link'
-import type { Announcement, Event, Member, Post } from '@/lib/types'
+import { loadFeed } from '@/lib/feed'
+import type { Announcement, Event, Member } from '@/lib/types'
 import { formatDate, formatTime } from '@/lib/utils'
 import { CalendarDays, MapPin } from 'lucide-react'
 
@@ -21,22 +22,14 @@ export default async function HomePage() {
   const nextWeek = new Date()
   nextWeek.setDate(nextWeek.getDate() + 7)
 
-  const [{ data: announcements }, { data: posts }, { data: weekPosts }, { data: upcomingEvents }] = await Promise.all([
+  const [{ data: announcements }, { posts }, { data: weekPosts }, { data: upcomingEvents }] = await Promise.all([
     admin
       .from('announcements')
       .select('*, author:members!announcements_author_id_fkey(id, name)')
       .order('is_pinned', { ascending: false })
       .order('created_at', { ascending: false })
       .limit(5),
-    admin
-      .from('posts')
-      .select(`
-        *,
-        author:members!posts_author_id_fkey(id, name, business_name, photo_url, category),
-        to_member:members!posts_to_member_id_fkey(id, name, business_name, photo_url)
-      `)
-      .order('created_at', { ascending: false })
-      .limit(10),
+    loadFeed(admin, 10),
     admin
       .from('posts')
       .select('type')
@@ -166,7 +159,7 @@ export default async function HomePage() {
         </div>
         <Card>
           <PostFeed
-            initialPosts={(posts as Post[]) || []}
+            initialPosts={posts}
             currentMember={member as Member}
             limit={5}
           />
